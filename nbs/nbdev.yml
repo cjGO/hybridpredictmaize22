@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "hybridpredictmaize22"
+  site-url: "https://cjGO.github.io/hybridpredictmaize22"
+  description: "gem"
+  repo-branch: main
+  repo-url: "https://github.com/cjGO/hybridpredictmaize22"

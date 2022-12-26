@@ -1,0 +1,6 @@
+website:
+  sidebar:
+    contents:
+      - index.ipynb
+      - 01_snpCompression.ipynb
+      - 02_gemDataset.ipynb
