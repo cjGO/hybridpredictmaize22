@@ -77,13 +77,18 @@ gem.W = WT(weather_data, test_split)
 gem.SNP = collect_snps(path_snps/'PCS_10')
 ```
 
-View the processed yields the train/test datasets
+``` python
+#example of how to unscale a value
+gem.Y.scaler.inverse_transform(np.array(1.4).reshape(-1,1))
+```
+
+    array([[939.15133997]])
 
 ``` python
 gem.Y.plot_yields()
 ```
 
-![](index_files/figure-commonmark/cell-8-output-1.png)
+![](index_files/figure-commonmark/cell-9-output-1.png)
 
 Example of a dataset which can be used with pytorch DataLoaders
 
