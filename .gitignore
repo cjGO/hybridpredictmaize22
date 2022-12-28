@@ -2,6 +2,7 @@ _docs/
 _proc/
 _proc/data
 nbs/data
+dev_nbs/data
 
 *.bak
 .gitattributes
