@@ -2,11 +2,12 @@
 
 # %% auto 0
 __all__ = ['def_device', 'remove_leapdays', 'DataLoaders', 'CancelFitException', 'CancelBatchException', 'CancelEpochException',
-           'run_cbs', 'Callback', 'CompletionCB', 'to_cpu', 'callback_ctx', 'DeviceCB', 'MetricsCB', 'ProgressCB',
-           'Learner', 'OneDCNN', 'MLP', 'GxE']
+           'run_cbs', 'Callback', 'CompletionCB', 'to_cpu', 'callback_ctx', 'MetricsCB', 'ProgressCB', 'Learner',
+           'OneDCNN', 'MLP', 'GxE', 'to_device', 'TrainCB', 'DeviceCB']
 
 # %% ../nbs/03_gemLearn.ipynb 3
 import torch
+from torch.utils.data import DataLoader
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -29,7 +30,9 @@ from contextlib import contextmanager
 from warnings import warn
 import torch.nn.functional as F
 import torch.optim as optim
-
+import torch.nn as nn
+from torcheval.metrics import MeanSquaredError,Mean, R2Score
+from fastprogress import progress_bar,master_bar
 
 from .GEMdataset import *
 
@@ -88,14 +91,7 @@ def callback_ctx(cbmeth, nm):
     except globals()[f'Cancel{nm.title()}Exception']: pass
     finally: cbmeth(f'cleanup_{nm}')
 
-# %% ../nbs/03_gemLearn.ipynb 13
-def_device = 'cuda' if torch.cuda.is_available() else 'cpu'
-class DeviceCB(Callback):
-    def __init__(self, device=def_device): fc.store_attr()
-    def before_fit(self, learn): learn.model.to(self.device)
-    def before_batch(self, learn): learn.batch = to_device(learn.batch, device=self.device)
-
-# %% ../nbs/03_gemLearn.ipynb 14
+# %% ../nbs/03_gemLearn.ipynb 12
 class MetricsCB(Callback):
     def __init__(self, *ms, **metrics):
         for o in ms: metrics[type(o).__name__] = o
@@ -115,10 +111,13 @@ class MetricsCB(Callback):
 
     def after_batch(self, learn):
         y,_,_ = to_cpu(learn.batch)
-        for m in self.metrics.values(): m.update(to_cpu(learn.preds.squeeze()), y)
-        self.loss.update(to_cpu(learn.loss), weight=len(x))
+        if y.shape == learn.preds.squeeze().shape:
+            for m in self.metrics.values(): m.update(to_cpu(learn.preds.squeeze()), y)
+            self.loss.update(to_cpu(learn.loss), weight=len(y))
+        else:
+            pass
 
-# %% ../nbs/03_gemLearn.ipynb 15
+# %% ../nbs/03_gemLearn.ipynb 13
 class ProgressCB(Callback):
     order = MetricsCB.order+1
     def __init__(self, plot=False): self.plot = plot
@@ -141,7 +140,7 @@ class ProgressCB(Callback):
             self.losses.append(learn.loss.item())
             self.mbar.update_graph([[fc.L.range(self.losses), self.losses]])
 
-# %% ../nbs/03_gemLearn.ipynb 17
+# %% ../nbs/03_gemLearn.ipynb 14
 class Learner():
     def __init__(self, model, dls=(0,), loss_func=F.mse_loss, lr=0.1, cbs=None, opt_func=optim.SGD):
         cbs = fc.L(cbs)
@@ -185,7 +184,7 @@ class Learner():
     @property
     def training(self): return self.model.training
 
-# %% ../nbs/03_gemLearn.ipynb 18
+# %% ../nbs/03_gemLearn.ipynb 15
 class OneDCNN(torch.nn.Module):
     def __init__(self):
         super(OneDCNN, self).__init__()
@@ -201,7 +200,7 @@ class OneDCNN(torch.nn.Module):
 
     def forward(self, x):
         # Apply the layers
-        x =  x.reshape(x.shape[0],16,365)
+        x =  x.reshape(x.shape[0],1,50)
         x = self.conv1(x)
         x = self.relu(x)
         x = self.conv2(x)
@@ -253,3 +252,28 @@ class GxE(torch.nn.Module):
         #print(x.shape)
         x = self.fc2(x)
         return x
+
+# %% ../nbs/03_gemLearn.ipynb 16
+def_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+def to_device(x, device=def_device):
+    if isinstance(x, Mapping): return {k:v.to(device) for k,v in x.items()}
+    return type(x)(o.type(torch.float32).to(device) for o in x)
+
+# %% ../nbs/03_gemLearn.ipynb 17
+class TrainCB(Callback):
+    def predict(self, learn):
+        learn.preds = learn.model(learn.batch[1])
+    def get_loss(self, learn):
+        #print(learn.preds.squeeze().shape, learn.batch[0].shape)
+        learn.loss = learn.loss_func(learn.preds.squeeze(), learn.batch[0])
+    def backward(self, learn): learn.loss.backward()
+    def step(self, learn): learn.opt.step()
+    def zero_grad(self, learn): learn.opt.zero_grad()
+
+# %% ../nbs/03_gemLearn.ipynb 18
+def_device = 'cuda' if torch.cuda.is_available() else 'cpu'
+class DeviceCB(Callback):
+    def __init__(self, device=def_device): fc.store_attr()
+    def before_fit(self, learn):
+        learn.model.to(self.device)
+    def before_batch(self, learn): learn.batch = to_device(learn.batch, device=self.device)

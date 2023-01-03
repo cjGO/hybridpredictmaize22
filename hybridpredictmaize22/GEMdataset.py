@@ -180,5 +180,9 @@ class GemDataset():
         target = self.Y.iloc[idx,:]['scaled_yield']
         genotype = self.SNP[1][:, np.where(self.SNP[0]==hybrid)[0][0]]
         weather = np.array(self.W.loc[self.W['Env'] == env].select_dtypes('float'))
+        #convert to tensors
+        target = torch.tensor(target, dtype=torch.float32)
+        genotype = torch.tensor(genotype, dtype=torch.float32)
+        weather = torch.tensor(weather,dtype=torch.float32)
 
-        return target, genotype, weather        
+        return target, genotype, weather
