@@ -37,7 +37,7 @@ from fastprogress import progress_bar,master_bar
 from .GEMdataset import *
 
 # %% ../nbs/03_gemLearn.ipynb 4
-def remove_leapdays(weather):
+def remove_leapdays(weather_data):
     """ just a hotfix """
     to_remove = []
     for i in list(set(weather_data['Env'])):

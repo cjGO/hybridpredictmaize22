@@ -31,21 +31,21 @@ def SNP_PCA(vcfFile, foldername='./PC/', pc=10):
     """
     chr_lens = []
     chr_pcs = []
-    for pc in [10,50]:
-      foldername = f'PCS_{pc}'
-      if not os.path.exists(foldername):os.mkdir(foldername)
-      for i in tqdm(range(1,11)):
-        strain,chr = vcf2numpy(vcfFile, chr=i)
-        pca = PCA(n_components=pc)
-        pca.fit(chr)
+    foldername = f'PCS_{pc}'
+    if not os.path.exists(foldername):os.mkdir(foldername)
+    for i in tqdm(range(1,11)):
+      strain,chr = vcf2numpy(vcfFile, chr=i)
+      pca = PCA(n_components=pc)
+      pca.fit(chr)
 
-        chr_len = chr.shape[0]
-        chr_pc = pca.explained_variance_ratio_
+      chr_len = chr.shape[0]
+      chr_pc = pca.explained_variance_ratio_
 
-        chr_lens.append(chr_len)
-        chr_pcs.append(chr_pc)
+      chr_lens.append(chr_len)
+      chr_pcs.append(chr_pc)
 
-        np.save(f'./{foldername}/Chr{str(i).zfill(3)}_pcs{pc}.npy', np.array([strain,pca.components_]))
+      np.save(f'./{foldername}/Chr{str(i).zfill(3)}_pcs{pc}.npy', np.array([strain,pca.components_]))
+
 
 # %% ../nbs/01_snpCompression.ipynb 8
 def SNP_evensample(snps=50):

@@ -17,6 +17,7 @@ from sklearn.impute import KNNImputer
 from sklearn.preprocessing import StandardScaler
 from pathlib import Path
 
+
 # %% ../nbs/02_gemDataset.ipynb 4
 def collect_snps(method):
     """
@@ -32,7 +33,7 @@ def collect_snps(method):
             strains, snps = np.load(chr, allow_pickle=True)
             snp_data = np.vstack((snp_data,snps))
 
-            return strains,snp_data
+    return strains,snp_data
 
 # %% ../nbs/02_gemDataset.ipynb 5
 class WT():
