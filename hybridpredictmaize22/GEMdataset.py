@@ -165,10 +165,11 @@ class GemDataset():
     """
     Pytorch Dataset which can be used with dataloaders for simple batching during training loops
     """
-    def __init__(self,W,Y,G):
+    def __init__(self,W,Y,G, def_device='cpu'):
         self.W = W
         self.SNP = G
         self.Y = Y
+        self.device = def_device
         
     def __len__(self): return self.Y.shape[0]
 
@@ -186,4 +187,4 @@ class GemDataset():
         genotype = torch.tensor(genotype, dtype=torch.float32)
         weather = torch.tensor(weather,dtype=torch.float32)
 
-        return target, genotype, weather
+        return target.to(self.device), genotype.to(self.device), weather.to(self.device)
