@@ -248,5 +248,5 @@ class GemDataset():
       w = self.W[1][np.where(self.W[0] == e)[0][0]]
 
       #snp
-      g = snp_data[1][:,np.where(snp_data[0] == h)[0][0]]
+      g = self.SNP[1][:,np.where(self.SNP[0] == h)[0][0]]
       return y,g,w
