@@ -77,7 +77,9 @@ def prep_gem_data(
     setYield = set(phenotype['Hybrid'])
     only_yield = setYield - setSNP
     phenotype = phenotype.iloc[[x not in only_yield for x in phenotype['Hybrid']],:]
-    
+    #remove rows w/o yields
+    phenotype = phenotype.loc[np.isnan(phenotype['Yield_Mg_ha'])==False,:]
+
     weather = weather.reset_index()
     phenotype = phenotype.reset_index()
     
